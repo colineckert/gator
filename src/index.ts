@@ -1,25 +1,30 @@
-import {
-  CommandsRegistry,
-  handlerLogging,
-  registerCommand,
-  runCommand,
-} from './commands';
+import { CommandsRegistry, registerCommand, runCommand } from './commands';
+import { handlerLogin } from './commands/users';
 
 function main() {
-  const commands = {} as CommandsRegistry;
-  registerCommand(commands, 'login', handlerLogging);
+  const args = process.argv.slice(2);
 
-  const [command, username] = process.argv.slice(2);
-  if (!command) {
-    console.error('No command provided');
-    process.exit(1);
-  }
-  if (command === 'login' && !username) {
-    console.error('No username provided for login');
+  if (args.length < 1) {
+    console.log('usage: cli <command> [args...]');
     process.exit(1);
   }
 
-  runCommand(commands, 'login', username);
+  const cmdName = args[0];
+  const cmdArgs = args.slice(1);
+  const commandsRegistry: CommandsRegistry = {};
+
+  registerCommand(commandsRegistry, 'login', handlerLogin);
+
+  try {
+    runCommand(commandsRegistry, cmdName, ...cmdArgs);
+  } catch (err) {
+    if (err instanceof Error) {
+      console.error(`Error running command ${cmdName}: ${err.message}`);
+    } else {
+      console.error(`Error running command ${cmdName}: ${err}`);
+    }
+    process.exit(1);
+  }
 }
 
 main();
