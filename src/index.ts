@@ -1,11 +1,11 @@
-import { CommandsRegistry, registerCommand, runCommand } from './commands';
-import { handlerLogin } from './commands/users';
+import { type CommandsRegistry, registerCommand, runCommand } from "./commands";
+import { handlerLogin } from "./commands/users";
 
 function main() {
   const args = process.argv.slice(2);
 
   if (args.length < 1) {
-    console.log('usage: cli <command> [args...]');
+    console.log("usage: cli <command> [args...]");
     process.exit(1);
   }
 
@@ -13,7 +13,7 @@ function main() {
   const cmdArgs = args.slice(1);
   const commandsRegistry: CommandsRegistry = {};
 
-  registerCommand(commandsRegistry, 'login', handlerLogin);
+  registerCommand(commandsRegistry, "login", handlerLogin);
 
   try {
     runCommand(commandsRegistry, cmdName, ...cmdArgs);
