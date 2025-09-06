@@ -16,7 +16,7 @@ export async function handlerLogin(cmdName: string, ...args: string[]) {
   console.log(`${userName} logged in successfully.`);
 }
 
-export async function registerUser(cmdName: string, ...args: string[]) {
+export async function handlerRegister(cmdName: string, ...args: string[]) {
   if (args.length !== 1) {
     throw new Error(`usage: ${cmdName} <name>`);
   }
