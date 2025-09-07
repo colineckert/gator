@@ -1,6 +1,6 @@
 import { XMLParser } from "fast-xml-parser";
 
-type RSSFeed = {
+export type RSSFeed = {
   channel: {
     title: string;
     link: string;
@@ -9,74 +9,70 @@ type RSSFeed = {
   };
 };
 
-type RSSItem = {
+export type RSSItem = {
   title: string;
   link: string;
   description: string;
   pubDate: string;
 };
 
-export async function fetchFeed(feedUrl: string): Promise<RSSFeed> {
-  const res = await fetch(feedUrl, {
+export async function fetchFeed(feedURL: string) {
+  const res = await fetch(feedURL, {
     headers: {
       "User-Agent": "gator",
+      accept: "application/rss+xml",
     },
   });
-
   if (!res.ok) {
-    throw new Error(`Failed to fetch feed from ${feedUrl}: ${res.statusText}`);
+    throw new Error(`failed to fetch feed: ${res.status} ${res.statusText}`);
   }
 
-  const feedText = await res.text();
+  const xml = await res.text();
   const parser = new XMLParser();
-  const { rss } = parser.parse(feedText) as { rss?: RSSFeed };
+  let result = parser.parse(xml);
 
-  if (!rss?.channel || !rss?.channel?.item) {
-    throw new Error(`Invalid RSS feed format from ${feedUrl}`);
+  const channel = result.rss?.channel;
+  if (!channel) {
+    throw new Error("failed to parse channel");
   }
 
-  const { channel } = rss;
-  if (!channel.title || !channel.link || !channel.description) {
-    throw new Error(
-      `Missing required channel fields in RSS feed from ${feedUrl}`,
-    );
+  if (
+    !channel ||
+    !channel.title ||
+    !channel.link ||
+    !channel.description ||
+    !channel.item
+  ) {
+    throw new Error("failed to parse channel");
   }
 
-  const { title, link, description } = channel;
-  if (!Array.isArray(channel.item)) {
-    channel.item = [];
-  }
+  const items: any[] = Array.isArray(channel.item)
+    ? channel.item
+    : [channel.item];
 
-  const validItems: RSSItem[] = [];
+  const rssItems: RSSItem[] = [];
 
-  for (const item of channel.item) {
+  for (const item of items) {
     if (!item.title || !item.link || !item.description || !item.pubDate) {
-      console.warn(
-        `Skipping item with missing required fields in RSS feed from ${feedUrl}: ${JSON.stringify(item)}`,
-      );
       continue;
     }
 
-    const {
-      title: itemTitle,
-      link: itemLink,
-      description: itemDescription,
-      pubDate,
-    } = item;
-    validItems.push({
-      title: itemTitle,
-      link: itemLink,
-      description: itemDescription,
-      pubDate,
+    rssItems.push({
+      title: item.title,
+      link: item.link,
+      description: item.description,
+      pubDate: item.pubDate,
     });
   }
 
-  return {
+  const rss: RSSFeed = {
     channel: {
-      title,
-      link,
-      description,
-      item: validItems,
+      title: channel.title,
+      link: channel.link,
+      description: channel.description,
+      item: rssItems,
     },
   };
+
+  return rss;
 }
