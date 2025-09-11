@@ -15,6 +15,13 @@
       "when": 1757304504909,
       "tag": "0001_perfect_katie_power",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1757560565804,
+      "tag": "0002_flat_kid_colt",
+      "breakpoints": true
     }
   ]
 }
