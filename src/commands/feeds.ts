@@ -1,8 +1,8 @@
-import { readConfig } from "src/config";
-import { createFeed, getFeeds } from "src/lib/db/queries/feeds";
-import { createFeedFollow } from "src/lib/db/queries/follows";
-import { getUserById, getUserByName } from "src/lib/db/queries/users";
-import type { Feed, User } from "src/lib/db/schema";
+import { readConfig } from 'src/config';
+import { createFeed, getFeeds } from 'src/lib/db/queries/feeds';
+import { createFeedFollow } from 'src/lib/db/queries/follows';
+import { getUserById, getUserByName } from 'src/lib/db/queries/users';
+import type { Feed, User } from 'src/lib/db/schema';
 
 function printFeed(feed: Feed, user: User) {
   console.log(`* ID:            ${feed.id}`);
@@ -13,32 +13,28 @@ function printFeed(feed: Feed, user: User) {
   console.log(`* User:          ${user.name}`);
 }
 
-export async function handlerAddFeed(cmdName: string, ...args: string[]) {
+export async function handlerAddFeed(
+  cmdName: string,
+  user: User,
+  ...args: string[]
+) {
   if (args.length !== 2) {
     throw new Error(`usage: ${cmdName} <feed_name> <url>`);
   }
 
-  const config = readConfig();
-  const user = await getUserByName(config.currentUserName);
-
-  if (!user) {
-    throw new Error(`User ${config.currentUserName} not found`);
-  }
-
   const feedName = args[0];
   const url = args[1];
-
   const feed = await createFeed(url, feedName, user.id);
   if (!feed) {
     throw new Error(`Failed to create feed`);
   }
 
-  console.log("Feed created successfully:");
+  console.log('Feed created successfully:');
   printFeed(feed, user);
 
   const feedFollow = await createFeedFollow(user.id, feed.id);
   console.log(
-    `${feedFollow.users.name} successfully followed ${feedFollow.feeds.name}`,
+    `${feedFollow.users.name} successfully followed ${feedFollow.feeds.name}`
   );
 }
 
@@ -49,7 +45,7 @@ export async function handlerFeeds(cmdName: string, ...args: string[]) {
 
   const feeds = await getFeeds();
   if (feeds.length === 0) {
-    console.log("No feeds found.");
+    console.log('No feeds found.');
     return;
   }
 
