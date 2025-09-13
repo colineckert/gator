@@ -24,6 +24,7 @@ export const feeds = pgTable("feeds", {
     .notNull()
     .defaultNow()
     .$onUpdate(() => new Date()),
+  lastFetchedAt: timestamp("last_fetched_at"),
 });
 
 export type Feed = typeof feeds.$inferSelect;
