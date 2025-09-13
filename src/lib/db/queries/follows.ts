@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "..";
 import { feedFollows, feeds, users } from "../schema";
 
@@ -27,4 +27,27 @@ export async function getFeedFollowsForUser(userId: string) {
     .where(eq(feedFollows.userId, userId));
 
   return result;
+}
+
+export async function deleteFeedFollow(userId: string, url: string) {
+  const [feedToUnfollow] = await db
+    .select()
+    .from(feeds)
+    .where(eq(feeds.url, url));
+
+  if (!feedToUnfollow) {
+    throw new Error(`Feed with URL ${url} not found`);
+  }
+
+  const deletedCount = await db
+    .delete(feedFollows)
+    .where(
+      and(
+        eq(feedFollows.userId, userId),
+        eq(feedFollows.feedId, feedToUnfollow.id),
+      ),
+    )
+    .returning();
+
+  return deletedCount.length > 0;
 }
