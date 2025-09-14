@@ -29,6 +29,13 @@
       "when": 1757787076934,
       "tag": "0003_useful_sugar_man",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1757809834958,
+      "tag": "0004_gigantic_namora",
+      "breakpoints": true
     }
   ]
 }
