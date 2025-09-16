@@ -1,20 +1,21 @@
-import { type CommandsRegistry, registerCommand, runCommand } from "./commands";
-import { handlerAgg } from "./commands/aggregate";
-import { handlerAddFeed, handlerFeeds } from "./commands/feeds";
+import { type CommandsRegistry, registerCommand, runCommand } from './commands';
+import { handlerAgg } from './commands/aggregate';
+import { handlerBrowse } from './commands/browse';
+import { handlerAddFeed, handlerFeeds } from './commands/feeds';
 import {
   handlerFollow,
   handlerFollowing,
   handlerUnfollow,
-} from "./commands/follow";
-import { handlerReset } from "./commands/reset";
-import { handlerLogin, handlerRegister, handlerUsers } from "./commands/users";
-import { middlewareLoggedIn } from "./middleware";
+} from './commands/follow';
+import { handlerReset } from './commands/reset';
+import { handlerLogin, handlerRegister, handlerUsers } from './commands/users';
+import { middlewareLoggedIn } from './middleware';
 
 async function main() {
   const args = process.argv.slice(2);
 
   if (args.length < 1) {
-    console.log("usage: cli <command> [args...]");
+    console.log('usage: cli <command> [args...]');
     process.exit(1);
   }
 
@@ -22,31 +23,36 @@ async function main() {
   const cmdArgs = args.slice(1);
   const commandsRegistry: CommandsRegistry = {};
 
-  registerCommand(commandsRegistry, "login", handlerLogin);
-  registerCommand(commandsRegistry, "register", handlerRegister);
-  registerCommand(commandsRegistry, "reset", handlerReset);
-  registerCommand(commandsRegistry, "users", handlerUsers);
-  registerCommand(commandsRegistry, "agg", handlerAgg);
+  registerCommand(commandsRegistry, 'login', handlerLogin);
+  registerCommand(commandsRegistry, 'register', handlerRegister);
+  registerCommand(commandsRegistry, 'reset', handlerReset);
+  registerCommand(commandsRegistry, 'users', handlerUsers);
+  registerCommand(commandsRegistry, 'agg', handlerAgg);
   registerCommand(
     commandsRegistry,
-    "addfeed",
-    middlewareLoggedIn(handlerAddFeed),
+    'addfeed',
+    middlewareLoggedIn(handlerAddFeed)
   );
-  registerCommand(commandsRegistry, "feeds", handlerFeeds);
+  registerCommand(commandsRegistry, 'feeds', handlerFeeds);
   registerCommand(
     commandsRegistry,
-    "follow",
-    middlewareLoggedIn(handlerFollow),
-  );
-  registerCommand(
-    commandsRegistry,
-    "following",
-    middlewareLoggedIn(handlerFollowing),
+    'follow',
+    middlewareLoggedIn(handlerFollow)
   );
   registerCommand(
     commandsRegistry,
-    "unfollow",
-    middlewareLoggedIn(handlerUnfollow),
+    'following',
+    middlewareLoggedIn(handlerFollowing)
+  );
+  registerCommand(
+    commandsRegistry,
+    'unfollow',
+    middlewareLoggedIn(handlerUnfollow)
+  );
+  registerCommand(
+    commandsRegistry,
+    'browse',
+    middlewareLoggedIn(handlerBrowse)
   );
 
   try {

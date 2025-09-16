@@ -1,6 +1,7 @@
-import { XMLParser } from "fast-xml-parser";
-import { getNextFeedToFetch, markFeedFetched } from "./lib/db/queries/feeds";
-import { Feed } from "./lib/db/schema";
+import { XMLParser } from 'fast-xml-parser';
+import { getNextFeedToFetch, markFeedFetched } from './lib/db/queries/feeds';
+import { Feed } from './lib/db/schema';
+import { createPost } from './lib/db/queries/posts';
 
 export type RSSFeed = {
   channel: {
@@ -21,8 +22,8 @@ export type RSSItem = {
 export async function fetchFeed(feedURL: string) {
   const res = await fetch(feedURL, {
     headers: {
-      "User-Agent": "gator",
-      accept: "application/rss+xml",
+      'User-Agent': 'gator',
+      accept: 'application/rss+xml',
     },
   });
   if (!res.ok) {
@@ -35,7 +36,7 @@ export async function fetchFeed(feedURL: string) {
 
   const channel = result.rss?.channel;
   if (!channel) {
-    throw new Error("failed to parse channel");
+    throw new Error('failed to parse channel');
   }
 
   if (
@@ -45,7 +46,7 @@ export async function fetchFeed(feedURL: string) {
     !channel.description ||
     !channel.item
   ) {
-    throw new Error("failed to parse channel");
+    throw new Error('failed to parse channel');
   }
 
   const items: any[] = Array.isArray(channel.item)
@@ -82,7 +83,7 @@ export async function fetchFeed(feedURL: string) {
 export async function scrapeFeeds() {
   const nextFeed = await getNextFeedToFetch();
   if (!nextFeed) {
-    console.log("No feeds to fetch");
+    console.log('No feeds to fetch');
     return;
   }
 
@@ -97,9 +98,21 @@ async function scrapeFeed(feed: Feed) {
   const feedData = await fetchFeed(feed.url);
 
   console.log(
-    `Feed ${feed.name} collected, ${feedData.channel.item.length} posts found`,
+    `Feed ${feed.name} collected, ${feedData.channel.item.length} posts found`
   );
   for (const item of feedData.channel.item) {
-    console.log(`* ${item.title} (${item.link})`);
+    const publishedAt = new Date(item.pubDate);
+    const newPost = await createPost(
+      feed.id,
+      item.title,
+      item.link,
+      item.description,
+      publishedAt
+    );
+    if (newPost) {
+      console.log(`New post added: ${newPost.title} (${newPost.url})`);
+    } else {
+      console.log(`Post already exists: ${item.title} (${item.link})`);
+    }
   }
 }
