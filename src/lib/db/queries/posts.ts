@@ -1,48 +1,30 @@
-import { eq, desc } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { db } from '..';
-import { feedFollows, feeds, posts } from '../schema';
-import { firstOrUndefined } from './utils';
+import { feedFollows, feeds, NewPost, posts } from '../schema';
 
-export async function createPost(
-  feedId: string,
-  title: string,
-  url: string,
-  description: string | null,
-  publishedAt: Date
-) {
-  const [existingPost] = await db
-    .select()
-    .from(posts)
-    .where(eq(posts.url, url))
-    .limit(1);
-
-  if (existingPost) {
-    return existingPost;
-  }
-
-  const newPost = await db
-    .insert(posts)
-    .values({
-      feedId,
-      title,
-      url,
-      description,
-      publishedAt,
-    })
-    .returning();
-
-  return firstOrUndefined(newPost);
+export async function createPost(post: NewPost) {
+  const [result] = await db.insert(posts).values(post).returning();
+  return result;
 }
 
-export async function getPostsForUser(userId: string, limit: number) {
+export async function getPostsForUsers(userId: string, limit: number) {
   const result = await db
-    .select()
+    .select({
+      id: posts.id,
+      createdAt: posts.createdAt,
+      updatedAt: posts.updatedAt,
+      title: posts.title,
+      url: posts.url,
+      description: posts.description,
+      publishedAt: posts.publishedAt,
+      feedId: posts.feedId,
+      feedName: feeds.name,
+    })
     .from(posts)
+    .innerJoin(feedFollows, eq(posts.feedId, feedFollows.feedId))
     .innerJoin(feeds, eq(posts.feedId, feeds.id))
-    .innerJoin(feedFollows, eq(feeds.id, feedFollows.feedId))
     .where(eq(feedFollows.userId, userId))
     .orderBy(desc(posts.publishedAt))
     .limit(limit);
-
-  return result.map((row) => row.posts);
+  return result;
 }

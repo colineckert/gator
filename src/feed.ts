@@ -1,6 +1,6 @@
 import { XMLParser } from 'fast-xml-parser';
 import { getNextFeedToFetch, markFeedFetched } from './lib/db/queries/feeds';
-import { Feed } from './lib/db/schema';
+import { Feed, NewPost } from './lib/db/schema';
 import { createPost } from './lib/db/queries/posts';
 
 export type RSSFeed = {
@@ -100,19 +100,19 @@ async function scrapeFeed(feed: Feed) {
   console.log(
     `Feed ${feed.name} collected, ${feedData.channel.item.length} posts found`
   );
-  for (const item of feedData.channel.item) {
-    const publishedAt = new Date(item.pubDate);
-    const newPost = await createPost(
-      feed.id,
-      item.title,
-      item.link,
-      item.description,
-      publishedAt
-    );
-    if (newPost) {
-      console.log(`New post added: ${newPost.title} (${newPost.url})`);
-    } else {
-      console.log(`Post already exists: ${item.title} (${item.link})`);
-    }
+  for (let item of feedData.channel.item) {
+    console.log(`Found post: %s`, item.title);
+
+    const now = new Date();
+
+    await createPost({
+      url: item.link,
+      feedId: feed.id,
+      title: item.title,
+      createdAt: now,
+      updatedAt: now,
+      description: item.description,
+      publishedAt: new Date(item.pubDate),
+    } satisfies NewPost);
   }
 }
