@@ -1,4 +1,4 @@
-Gator
+# Gator
 
 Lightweight CLI for following and browsing RSS feeds backed by Postgres and Drizzle ORM.
 
